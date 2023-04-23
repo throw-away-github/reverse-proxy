@@ -7,19 +7,19 @@ namespace CF.AccessProxy;
 public static class ReverseProxyExtensions
 {
     /// <summary>
-    /// Loads the routes and clusters from the IProxyConfigInfo service
+    /// Loads the routes and clusters from the IProxyConfigInfo service into memory
     /// </summary>
     /// <exception cref="System.InvalidOperationException">There is no IProxyConfigInfo service registered</exception>
-    public static IReverseProxyBuilder LoadFromProviders(this IReverseProxyBuilder builder)
+    public static IReverseProxyBuilder LoadFromProviders(this IReverseProxyBuilder proxyBuilder)
     {
-        using var scope = builder.Services.BuildServiceProvider().CreateScope();
+        using var scope = proxyBuilder.Services.BuildServiceProvider().CreateScope();
 
         var info = scope.ServiceProvider
             .GetRequiredService<IProxyConfigInfo>();
 
-        builder.LoadFromMemory(info.Routes, info.Clusters);
+        proxyBuilder.LoadFromMemory(info.Routes, info.Clusters);
 
-        return builder;
+        return proxyBuilder;
     }
 }
 

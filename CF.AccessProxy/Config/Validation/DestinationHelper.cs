@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Config.Validation;
@@ -22,7 +24,8 @@ public static class DestinationHelper
         foreach (var url in urls)
         {
             var trimmedUrl = url.Trim();
-            destinations.Add(new Uri(url).Host, new DestinationConfig { Address = trimmedUrl });
+            var subdomain = SemicolonSeparatedUrlsAttribute.Subdomain(trimmedUrl);
+            destinations.Add(subdomain, new DestinationConfig { Address = trimmedUrl });
         }
 
         return destinations;

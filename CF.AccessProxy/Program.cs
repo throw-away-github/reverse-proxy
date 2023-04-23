@@ -2,6 +2,8 @@ using CF.AccessProxy;
 using CF.AccessProxy.Clusters;
 using CF.AccessProxy.Config;
 using CF.AccessProxy.Routes;
+using CF.AccessProxy.Transforms;
+using Yarp.ReverseProxy.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +18,8 @@ builder.Services
 
 // Add Reverse Proxy
 builder.Services.AddReverseProxy()
-    .LoadFromProviders();
+    .LoadFromProviders()
+    .AddTransforms<LeadingPathToHost>();
 
 var app = builder.Build();
 

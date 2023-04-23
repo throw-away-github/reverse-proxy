@@ -1,14 +1,21 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
+using CF.AccessProxy.Config.Validation;
+using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Config.Options;
 
-public class CFAccessOptions: IOptionsProvider
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
+internal class CFAccessOptions: IOptionsProvider
 {
-    public const string CFAccess = "CFAccess";
-    [Required]
-    public string ClientId { get; set; } = string.Empty;
-    [Required]
-    public string ClientSecret { get; set; } = string.Empty;
-
     public static string Prefix => "CFAccess";
+    
+    [Required] public string ClientId { get; set; } = string.Empty;
+    [Required] public string ClientSecret { get; set; } = string.Empty;
+    
+    [SemicolonSeparatedUrls] public string Domain { get; set; } = string.Empty;
+    
+    internal Dictionary<string, DestinationConfig> DestinationConfig => 
+        DestinationHelper.ConvertStringToDestinations(Domain);
 }

@@ -5,7 +5,7 @@ using Yarp.ReverseProxy.Transforms;
 
 namespace CF.AccessProxy.Routes;
 
-public class CFAccessRoute: IRouteProvider
+internal class CFAccessRoute: IRouteProvider
 {
     private readonly CFAccessOptions _options;
     

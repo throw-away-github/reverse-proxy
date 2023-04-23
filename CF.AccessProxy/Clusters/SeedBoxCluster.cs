@@ -1,24 +1,25 @@
+using CF.AccessProxy.Config.Options;
+using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Clusters;
 
-public class SeedBoxCluster: IClusterProvider
+internal class SeedBoxCluster: IClusterProvider
 {
-    public ClusterConfig Cluster => BuildConfig();
-    private static ClusterConfig BuildConfig()
+    private readonly CFAccessOptions _options;
+    
+    public SeedBoxCluster(IOptions<CFAccessOptions> options)
+    {
+        _options = options.Value;
+    }
+    
+    public ClusterConfig Cluster => Create();
+    private ClusterConfig Create()
     {
         return new ClusterConfig
         {
             ClusterId = "seedbox",
-            Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
-            {
-                {
-                    "dflood", new DestinationConfig
-                    {
-                        Address = "https://dflood.tcbrooks.com",
-                    }
-                },
-            }
+            Destinations = _options.DestinationConfig
         };
     }
 }

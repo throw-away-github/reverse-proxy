@@ -1,19 +1,18 @@
 using CF.AccessProxy;
 using CF.AccessProxy.Clusters;
 using CF.AccessProxy.Config;
-using CF.AccessProxy.Config.Options;
 using CF.AccessProxy.Routes;
+using Yarp.ReverseProxy.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// Load config
-builder.Services.LoadOptions<CFAccessOptions>();
-// Add Cluster and Route Providers
+// Load options, providers, and config
 builder.Services
-    .AddTransient<IClusterProvider, SeedBoxCluster>()
-    .AddTransient<IRouteProvider, CFAccessRoute>()
+    .LoadProviderOptions()
+    .RegisterAllTypes<IClusterProvider>()
+    .RegisterAllTypes<IRouteProvider>()
     .AddSingleton<IProxyConfigInfo, InMemoryConfig>();
 
 // Add Reverse Proxy

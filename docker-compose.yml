@@ -1,0 +1,8 @@
+﻿services:
+  cf.access-proxy:
+    image: cf.access-proxy
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+    build:
+      context: .
+      dockerfile: CF.AccessProxy/Dockerfile

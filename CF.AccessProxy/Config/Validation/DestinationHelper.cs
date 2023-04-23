@@ -4,6 +4,11 @@ namespace CF.AccessProxy.Config.Validation;
 
 public static class DestinationHelper
 {
+    /// <summary>
+    /// Converts a semicolon separated string of urls to a dictionary of destinations.
+    /// Hostname is used as the key.
+    /// </summary>
+    /// <exception cref="ArgumentException">If the string is null or whitespace.</exception>
     public static Dictionary<string, DestinationConfig> ConvertStringToDestinations(string semicolonSeparatedUrls)
     {
         if (string.IsNullOrWhiteSpace(semicolonSeparatedUrls)) 
@@ -17,20 +22,9 @@ public static class DestinationHelper
         foreach (var url in urls)
         {
             var trimmedUrl = url.Trim();
-            destinations.Add(CreateDestinationName(trimmedUrl), new DestinationConfig { Address = trimmedUrl });
+            destinations.Add(new Uri(url).Host, new DestinationConfig { Address = trimmedUrl });
         }
 
         return destinations;
-    }
-
-    private static string CreateDestinationName(string url)
-    {
-        var name = url.Replace("https://", "").Replace("http://", "");
-        var slashIndex = name.IndexOf('/');
-        if (slashIndex >= 0)
-        {
-            name = name[..slashIndex];
-        }
-        return name;
     }
 }

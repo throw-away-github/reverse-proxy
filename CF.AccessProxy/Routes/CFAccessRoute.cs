@@ -24,7 +24,7 @@ internal class CFAccessRoute: IRouteProvider
     {
         var route = new RouteConfig
         {
-            RouteId = "cf-access",
+            RouteId = _options.RouteId,
             ClusterId = "seedbox",
             Match = new RouteMatch()
             {

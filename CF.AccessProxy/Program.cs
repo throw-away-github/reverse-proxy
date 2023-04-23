@@ -2,7 +2,6 @@ using CF.AccessProxy;
 using CF.AccessProxy.Clusters;
 using CF.AccessProxy.Config;
 using CF.AccessProxy.Routes;
-using Yarp.ReverseProxy.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 

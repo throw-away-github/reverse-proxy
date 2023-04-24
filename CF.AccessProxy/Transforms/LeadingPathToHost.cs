@@ -30,13 +30,14 @@ internal class LeadingPathToHost: ITransformProvider
     public void Apply(TransformBuilderContext context)
     {
         // I feel like there should be a way to access transform context within the route... Need to look through the source code.
-        // If not, at least I could create a custom route provider with a TransformContext property, that would need an abstract class though.
+        // I think I could just use the TransformBuilderContext directly, it has a Route property.
+        // If I add a dictionary of routeId to IRouteProvider, and added an Apply method to IRouteProvider,
+        // I could just look up the routeId in the dictionary and call Apply on the IRouteProvider.
         if (context.Route.RouteId != _options.RouteId)
         {
-            Console.WriteLine($"RouteId: {context.Route.RouteId} != {_options.RouteId}");
             return;
         }
-        
+
         context.AddRequestTransform(ctx =>
         {
             var paths = ctx.Path.Value?.Split('/');
@@ -44,12 +45,12 @@ internal class LeadingPathToHost: ITransformProvider
             
             // I'll probably just create a route and cluster for each subdomain in the future (Route/Cluster Factory?)
             // But for now I'll use this, it's good to have an example of the transform api.
-            if (subdomain == null || !_options.DestinationConfig.TryGetValue(subdomain, out var destination))
+            if (subdomain == null || !_options.DestinationConfig.Value.TryGetValue(subdomain, out var destination))
             {
                 // the host needs to be set explicitly, otherwise it seems to be chosen randomly
                 // I should try to figure out how that works
                 ctx.ProxyRequest.Headers.Host = 
-                    new Uri(_options.DestinationConfig.First().Value.Address).Host;
+                    new Uri(_options.DestinationConfig.Value.First().Value.Address).Host;
                 return default;
             }
             // set the proxy request host to the destination host

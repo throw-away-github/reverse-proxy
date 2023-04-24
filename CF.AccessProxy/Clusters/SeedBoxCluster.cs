@@ -19,7 +19,7 @@ internal class SeedBoxCluster: IClusterProvider
         return new ClusterConfig
         {
             ClusterId = "seedbox",
-            Destinations = _options.DestinationConfig
+            Destinations = _options.DestinationConfig.Value
         };
     }
 }

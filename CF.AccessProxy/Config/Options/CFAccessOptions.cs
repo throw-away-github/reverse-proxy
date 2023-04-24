@@ -17,6 +17,6 @@ internal class CFAccessOptions: IOptionsProvider
     [SemicolonSeparatedUrls] public string Domain { get; set; } = string.Empty;
     [Required] public string RouteId { get; set; } = "cf-access";
     
-    internal Dictionary<string, DestinationConfig> DestinationConfig => 
-        DestinationHelper.ConvertStringToDestinations(Domain);
+    internal Lazy<Dictionary<string, DestinationConfig>> DestinationConfig => 
+        new(() => DestinationHelper.ConvertStringToDestinations(Domain));
 }

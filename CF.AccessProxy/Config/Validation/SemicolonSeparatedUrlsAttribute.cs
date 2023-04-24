@@ -16,7 +16,7 @@ public partial class SemicolonSeparatedUrlsAttribute : ValidationAttribute
             return new ValidationResult("The value must be a string containing semicolon-separated URLs.");
         }
 
-        var urls = rawUrls.Split(';').Select(url => url.Trim()).ToList();
+        var urls = rawUrls.Split(';').Select(url => url.Trim());
 
         foreach (var url in urls.Where(url => string.IsNullOrWhiteSpace(url) || !_urlRegex.IsMatch(url)))
         {

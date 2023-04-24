@@ -37,9 +37,9 @@ internal class LeadingPathToHost: ITransformProvider
             return;
         }
         
-        context.AddRequestTransform(transformContext =>
+        context.AddRequestTransform(ctx =>
         {
-            var paths = transformContext.Path.Value?.Split('/');
+            var paths = ctx.Path.Value?.Split('/');
             var subdomain = paths is { Length: > 1 } ? paths[1] : null;
             
             // I'll probably just create a route and cluster for each subdomain in the future (Route/Cluster Factory?)
@@ -48,14 +48,35 @@ internal class LeadingPathToHost: ITransformProvider
             {
                 // the host needs to be set explicitly, otherwise it seems to be chosen randomly
                 // I should try to figure out how that works
-                transformContext.ProxyRequest.Headers.Host = 
+                ctx.ProxyRequest.Headers.Host = 
                     new Uri(_options.DestinationConfig.First().Value.Address).Host;
                 return default;
             }
             // set the proxy request host to the destination host
-            transformContext.ProxyRequest.Headers.Host = new Uri(destination.Address).Host;
+            ctx.ProxyRequest.Headers.Host = new Uri(destination.Address).Host;
             // remove the subdomain from the path
-            transformContext.Path = transformContext.Path.Value?.Replace($"/{subdomain}", "");
+            ctx.Path = ctx.Path.Value?.Replace($"/{subdomain}", "");
+            return default;
+        });
+        
+        context.AddResponseTransform(ctx =>
+        {
+            // for now, if two set-cookie headers are present, and one is the jwt cookie, we'll remove the other one
+            // this is because Radarr has the weirdest cookie behavior I've ever seen and even I couldn't figure it out
+
+            if (!ctx.HttpContext.Response.Headers.TryGetValue("Set-Cookie", out var cookies))
+                return default;
+            
+            var cookieList = cookies.ToList();
+            if (cookieList.Count <= 1)
+                return default;
+            
+            var jwtCookie = cookieList.FirstOrDefault(x => x != null && x.StartsWith("jwt="));
+            if (jwtCookie == null)
+                return default;
+            
+            ctx.HttpContext.Response.Headers["Set-Cookie"] = jwtCookie;
+            
             return default;
         });
     }

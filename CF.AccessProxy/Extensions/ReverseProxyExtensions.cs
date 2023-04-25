@@ -1,6 +1,6 @@
 using CF.AccessProxy.Config;
 
-namespace CF.AccessProxy;
+namespace CF.AccessProxy.Extensions;
 
 public static class ReverseProxyExtensions
 {

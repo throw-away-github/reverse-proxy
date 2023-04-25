@@ -1,7 +1,7 @@
 using System.Reflection;
 using CF.AccessProxy.Config.Options;
 
-namespace CF.AccessProxy;
+namespace CF.AccessProxy.Extensions;
 
 internal static class ServiceCollectionExtensions
 {

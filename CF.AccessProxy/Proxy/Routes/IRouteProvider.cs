@@ -1,6 +1,6 @@
 using Yarp.ReverseProxy.Configuration;
 
-namespace CF.AccessProxy.Routes;
+namespace CF.AccessProxy.Proxy.Routes;
 
 public interface IRouteProvider
 {

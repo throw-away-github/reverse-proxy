@@ -1,6 +1,6 @@
 using Yarp.ReverseProxy.Configuration;
 
-namespace CF.AccessProxy.Clusters;
+namespace CF.AccessProxy.Proxy.Clusters;
 
 public interface IClusterProvider
 {

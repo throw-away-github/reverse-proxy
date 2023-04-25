@@ -2,7 +2,7 @@ using CF.AccessProxy.Config.Options;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
 
-namespace CF.AccessProxy.Clusters;
+namespace CF.AccessProxy.Proxy.Clusters;
 
 internal class SeedBoxCluster: IClusterProvider
 {

@@ -1,5 +1,5 @@
-using CF.AccessProxy.Clusters;
-using CF.AccessProxy.Routes;
+using CF.AccessProxy.Proxy.Clusters;
+using CF.AccessProxy.Proxy.Routes;
 using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Config;

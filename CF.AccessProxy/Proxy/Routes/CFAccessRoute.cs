@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
-namespace CF.AccessProxy.Routes;
+namespace CF.AccessProxy.Proxy.Routes;
 
 internal class CFAccessRoute: IRouteProvider
 {

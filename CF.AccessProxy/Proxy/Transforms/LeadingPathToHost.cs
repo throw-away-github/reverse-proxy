@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Transforms.Builder;
 
-namespace CF.AccessProxy.Transforms;
+namespace CF.AccessProxy.Proxy.Transforms;
 
 internal class LeadingPathToHost: ITransformProvider
 {

@@ -1,4 +1,6 @@
 using CF.AccessProxy.Config.Options;
+using CF.AccessProxy.Extensions;
+using CF.AccessProxy.Proxy.Transforms;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
@@ -35,6 +37,7 @@ internal class CFAccessRoute: IRouteProvider
         return route
             .WithTransformPathRemovePrefix("/cf-access")
             .WithTransformRequestHeader("CF-Access-Client-Id", _options.ClientId)
-            .WithTransformRequestHeader("CF-Access-Client-Secret", _options.ClientSecret);
+            .WithTransformRequestHeader("CF-Access-Client-Secret", _options.ClientSecret)
+            .WithTransformFactory<CFAccessTransformFactory>();
     }
 }

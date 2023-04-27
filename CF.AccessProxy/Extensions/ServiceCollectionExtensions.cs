@@ -25,17 +25,8 @@ internal static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection LoadProviderOptions(this IServiceCollection services)
     {
-        var typesFromAssemblies = GetInterfaceImplementations(typeof(IOptionsProvider));
-
-        foreach (var type in typesFromAssemblies)
-        {
-            // this is a bit of a hack, I hate it, but it works
-            // it's still better than having to manually register each option
-            var method = typeof(ServiceCollectionExtensions).GetMethod(nameof(LoadOptions));
-            var generic = method?.MakeGenericMethod(type);
-            generic?.Invoke(null, new object[] { services });
-        }
-
+        var method = typeof(ServiceCollectionExtensions).GetMethod(nameof(LoadOptions));
+        InvokeWithImplementations(method, typeof(IOptionsProvider), services);
         return services;
     }
 
@@ -44,7 +35,7 @@ internal static class ServiceCollectionExtensions
     /// </summary>
     /// <typeparam name="T">The interface to register</typeparam>
     public static IServiceCollection RegisterAllTypes<T>(this IServiceCollection services,
-        ServiceLifetime lifetime = ServiceLifetime.Singleton)
+        ServiceLifetime lifetime = ServiceLifetime.Transient)
     {
         var typesFromAssemblies = GetInterfaceImplementations(typeof(T));
 
@@ -52,6 +43,15 @@ internal static class ServiceCollectionExtensions
             services.Add(new ServiceDescriptor(typeof(T), type, lifetime));
 
         return services;
+    }
+    
+    public static void InvokeWithImplementations(MethodInfo? method, Type type, params object[] args)
+    {
+        foreach (var impl in GetInterfaceImplementations(type))
+        {
+            var generic = method?.MakeGenericMethod(impl);
+            generic?.Invoke(null, args);
+        }
     }
 
     /// <summary>

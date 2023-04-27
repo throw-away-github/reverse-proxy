@@ -18,7 +18,7 @@ builder.Services
 // Add Reverse Proxy
 builder.Services.AddReverseProxy()
     .LoadFromProviders()
-    .AddTransforms<LeadingPathToHost>();
+    .AddAllTransforms();
 
 var app = builder.Build();
 

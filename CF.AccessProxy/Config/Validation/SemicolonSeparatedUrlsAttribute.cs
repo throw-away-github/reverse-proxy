@@ -9,6 +9,9 @@ public partial class SemicolonSeparatedUrlsAttribute : ValidationAttribute
     // TODO: See if options pattern can automatically convert string to dictionary/list of URLs
     private readonly Regex _urlRegex = UrlRegex();
 
+    /// <summary>
+    /// Data annotation to validate a semicolon-separated string of URLs.
+    /// </summary>
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
         if (value is not string rawUrls)
@@ -25,17 +28,7 @@ public partial class SemicolonSeparatedUrlsAttribute : ValidationAttribute
 
         return ValidationResult.Success;
     }
-    
-    
-    public static string Subdomain(string url)
-    {
-        var subdomain = SubdomainRegex().Match(url).Groups["subdomain"].Value;
-        return string.IsNullOrWhiteSpace(subdomain) ? url : subdomain;
-    }
 
     [GeneratedRegex("^(https?|ftp|file)://.+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
     private static partial Regex UrlRegex();
-    
-    [GeneratedRegex(@"^https?://(?<subdomain>[^.]+)\..+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex SubdomainRegex();
 }

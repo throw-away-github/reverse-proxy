@@ -38,6 +38,6 @@ internal class CFAccessRoute: IRouteProvider
             .WithTransformPathRemovePrefix("/cf-access")
             .WithTransformRequestHeader("CF-Access-Client-Id", _options.ClientId)
             .WithTransformRequestHeader("CF-Access-Client-Secret", _options.ClientSecret)
-            .WithTransformFactory<CFAccessTransformFactory>();
+            .WithTransformFactory<CFAccessTransform>();
     }
 }

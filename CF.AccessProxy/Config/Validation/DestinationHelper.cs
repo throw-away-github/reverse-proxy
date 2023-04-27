@@ -4,7 +4,7 @@ using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Config.Validation;
 
-public static class DestinationHelper
+public partial class DestinationHelper
 {
     /// <summary>
     /// Converts a semicolon separated string of urls to a dictionary of destinations.
@@ -24,10 +24,19 @@ public static class DestinationHelper
         foreach (var url in urls)
         {
             var trimmedUrl = url.Trim();
-            var subdomain = SemicolonSeparatedUrlsAttribute.Subdomain(trimmedUrl);
+            var subdomain = Subdomain(trimmedUrl);
             destinations.Add(subdomain, new DestinationConfig { Address = trimmedUrl });
         }
 
         return destinations;
     }
+
+    private static string Subdomain(string url)
+    {
+        var subdomain = SubdomainRegex().Match(url).Groups["subdomain"].Value;
+        return string.IsNullOrWhiteSpace(subdomain) ? url : subdomain;
+    }
+    
+    [GeneratedRegex(@"^https?://(?<subdomain>[^.]+)\..+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
+    private static partial Regex SubdomainRegex();
 }

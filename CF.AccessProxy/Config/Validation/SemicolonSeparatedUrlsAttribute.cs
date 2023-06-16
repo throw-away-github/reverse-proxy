@@ -5,8 +5,7 @@ namespace CF.AccessProxy.Config.Validation;
 
 public partial class SemicolonSeparatedUrlsAttribute : ValidationAttribute
 {
-    // TODO: Add support for IPv4 and IPv6 addresses
-    // TODO: See if options pattern can automatically convert string to dictionary/list of URLs
+    // No longer used since options pattern can automatically read dictionary of URLs
     private readonly Regex _urlRegex = UrlRegex();
 
     /// <summary>

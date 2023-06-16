@@ -1,22 +1,21 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using CF.AccessProxy.Config.Validation;
 using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Config.Options;
 
-[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
-internal class CFAccessOptions: IOptionsProvider
+internal class CFAccessOptions : IOptionsProvider
 {
     public static string Prefix => "CFAccess";
-    
-    [Required] public string ClientId { get; set; } = string.Empty;
-    [Required] public string ClientSecret { get; set; } = string.Empty;
-    
-    [SemicolonSeparatedUrls] public string Domain { get; set; } = string.Empty;
-    [Required] public string RouteId { get; set; } = "cf-access";
-    
-    internal Lazy<Dictionary<string, DestinationConfig>> DestinationConfig => 
-        new(() => DestinationHelper.ConvertStringToDestinations(Domain));
+
+    [Required] public string RouteId { get; init; } = "cf-access";
+    [Required] public required string ClientId { get; init; }
+    [Required] public required string ClientSecret { get; init; }
+
+
+    [Required(ErrorMessage = "At least one CFAccess domain needs to be provided.")]
+    public required Dictionary<string, Uri> Domains { get; init; }
+
+    internal Lazy<Dictionary<string, DestinationConfig>> DestinationConfig =>
+        new(() => DestinationHelper.ConvertToDestinations(Domains));
 }

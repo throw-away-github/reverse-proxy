@@ -14,15 +14,15 @@ internal class SeedBoxCluster: IClusterProvider
         _options = options.Value;
     }
     
-    public IEnumerable<ClusterConfig> Cluster => BuildClusters();
+    public IEnumerable<ClusterConfig> Clusters => BuildClusters();
     
     /// <summary>
-    /// Takes the list of domains from the config and builds a cluster for each one.
+    /// Takes the list of proxies from the config and builds a cluster for each one.
     /// </summary>
     /// <returns>A list of <see cref="ClusterConfig"/> to be used by the proxy.</returns>
     private IEnumerable<ClusterConfig> BuildClusters()
     {
-        return _options.Domains.Select(proxy => new ClusterConfig
+        return _options.Proxies.Select(proxy => new ClusterConfig
         {
             ClusterId = proxy.Key,
             Destinations = proxy.ToDictionary(pair => pair.Key, pair => new DestinationConfig

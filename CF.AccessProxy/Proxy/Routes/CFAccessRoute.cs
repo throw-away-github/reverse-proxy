@@ -23,7 +23,7 @@ internal class CFAccessRoute : IRouteProvider
     public IEnumerable<RouteConfig> Routes => BuildRoutes();
 
     /// <summary>
-    /// Takes the list of domains from the config and builds a route for each one.
+    /// Takes the list of proxies from the config and builds a route for each one.
     /// </summary>
     /// <remarks>
     /// Path /{base path}/{proxy key}
@@ -33,7 +33,7 @@ internal class CFAccessRoute : IRouteProvider
     {
         // This was a foreach loop with a yield return, but Rider suggested converting it.
         // Not sure which I like better, but leaving it as is for now.
-        return _options.Domains.Keys
+        return _options.Proxies.Keys
             .Select(proxyKey => new RouteConfig
             {
                 RouteId = proxyKey,

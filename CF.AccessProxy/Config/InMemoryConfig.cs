@@ -19,6 +19,6 @@ internal class InMemoryConfig : IProxyConfigInfo
         IEnumerable<IClusterProvider> clusterProviders)
     {
         Routes = routeProviders.SelectMany(provider => provider.Routes).AsList().AsReadOnly();
-        Clusters = clusterProviders.SelectMany(provider => provider.Cluster).AsList().AsReadOnly();
+        Clusters = clusterProviders.SelectMany(provider => provider.Clusters).AsList().AsReadOnly();
     }
 }

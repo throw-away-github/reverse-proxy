@@ -13,9 +13,9 @@ internal class CFAccessOptions : IOptionsProvider
     [Required] public required string ClientSecret { get; init; }
 
 
-    [Required(ErrorMessage = "At least one CFAccess domain needs to be provided.")]
-    public required Dictionary<string, Uri> Domains { get; init; }
+    [Required(ErrorMessage = "At least one CFAccess proxy needs to be provided.")]
+    public required Dictionary<string, Uri> Proxies { get; init; }
 
     internal Lazy<Dictionary<string, DestinationConfig>> DestinationConfig =>
-        new(() => DestinationHelper.ConvertToDestinations(Domains));
+        new(() => DestinationHelper.ConvertToDestinations(Proxies));
 }

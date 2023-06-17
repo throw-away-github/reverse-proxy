@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Yarp.ReverseProxy.Transforms.Builder;
 
 namespace CF.AccessProxy.Proxy.Transforms;
@@ -11,6 +12,7 @@ namespace CF.AccessProxy.Proxy.Transforms;
 /// Any class implementing this interface will be added to the DI container and can be used in the config
 /// <see cref="Extensions.ReverseProxyExtensions.AddAllTransforms"/>
 /// </note>
+[UsedImplicitly (ImplicitUseTargetFlags.WithInheritors)]
 public interface ITransform: ITransformFactory
 {
     static abstract string Id { get; }

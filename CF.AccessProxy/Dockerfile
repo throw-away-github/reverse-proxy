@@ -21,6 +21,6 @@ ENV ASPNETCORE_URLS=http://+:80
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV CFAccess__ClientId=""
 ENV CFAccess__ClientSecret=""
-ENV CFAccess__Domains=""
+ENV CFAccess__Proxies=""
 
 ENTRYPOINT ["dotnet", "CF.AccessProxy.dll"]

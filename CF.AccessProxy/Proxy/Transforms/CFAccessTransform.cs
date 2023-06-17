@@ -1,11 +1,10 @@
 using CF.AccessProxy.Config.Options;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Transforms;
-using Yarp.ReverseProxy.Transforms.Builder;
 
 namespace CF.AccessProxy.Proxy.Transforms;
 
-// ReSharper disable once ClassNeverInstantiated.Global
 internal class CFAccessTransform: SimpleTransform
 {
     private readonly CFAccessOptions _options;

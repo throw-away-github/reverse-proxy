@@ -5,11 +5,11 @@ using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Proxy.Clusters;
 
-internal class SeedBoxCluster: IClusterProvider
+internal class CFAccessCluster: IClusterProvider
 {
     private readonly CFAccessOptions _options;
     
-    public SeedBoxCluster(IOptions<CFAccessOptions> options)
+    public CFAccessCluster(IOptions<CFAccessOptions> options)
     {
         _options = options.Value;
     }

@@ -19,22 +19,6 @@ internal class CFAccessTransform: SimpleTransform
 
     protected override ValueTask RequestTransform(RequestTransformContext context, IReadOnlyDictionary<string, string> args)
     {
-        // Use the first path after the route prefix to determine which destination to use
-        var paths = context.Path.Value?.Split('/');
-        var key = paths is { Length: > 1 } ? paths[1] : null;
-        
-        if (key == null || !_options.Domains.TryGetValue(key, out var destination))
-        {
-            // the host needs to be set explicitly, otherwise it seems to be chosen randomly
-            // I should try to figure out how that works
-            context.ProxyRequest.Headers.Host = _options.Domains.First().Value.Host;
-            return default;
-        }
-
-        // set the proxy request host to the destination host
-        context.ProxyRequest.Headers.Host = destination.Host;
-        // remove the subdomain from the path
-        context.Path = context.Path.Value?.Replace($"/{key}", "");
         return default;
     }
 

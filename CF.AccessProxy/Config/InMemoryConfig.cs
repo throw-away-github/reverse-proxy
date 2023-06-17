@@ -1,3 +1,4 @@
+using CF.AccessProxy.Extensions;
 using CF.AccessProxy.Proxy.Clusters;
 using CF.AccessProxy.Proxy.Routes;
 using Yarp.ReverseProxy.Configuration;
@@ -17,7 +18,7 @@ internal class InMemoryConfig : IProxyConfigInfo
         IEnumerable<IRouteProvider> routeProviders,
         IEnumerable<IClusterProvider> clusterProviders)
     {
-        Routes = routeProviders.Select(provider => provider.Route).ToList().AsReadOnly();
-        Clusters = clusterProviders.Select(provider => provider.Cluster).ToList().AsReadOnly();
+        Routes = routeProviders.SelectMany(provider => provider.Routes).AsList().AsReadOnly();
+        Clusters = clusterProviders.SelectMany(provider => provider.Cluster).AsList().AsReadOnly();
     }
 }

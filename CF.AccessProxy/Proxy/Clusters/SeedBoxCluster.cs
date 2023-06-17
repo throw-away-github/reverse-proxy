@@ -1,4 +1,5 @@
 using CF.AccessProxy.Config.Options;
+using CF.AccessProxy.Extensions;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
 
@@ -13,13 +14,21 @@ internal class SeedBoxCluster: IClusterProvider
         _options = options.Value;
     }
     
-    public ClusterConfig Cluster => Create();
-    private ClusterConfig Create()
+    public IEnumerable<ClusterConfig> Cluster => BuildClusters();
+    
+    /// <summary>
+    /// Takes the list of domains from the config and builds a cluster for each one.
+    /// </summary>
+    /// <returns>A list of <see cref="ClusterConfig"/> to be used by the proxy.</returns>
+    private IEnumerable<ClusterConfig> BuildClusters()
     {
-        return new ClusterConfig
+        return _options.Domains.Select(proxy => new ClusterConfig
         {
-            ClusterId = "seedbox",
-            Destinations = _options.DestinationConfig.Value
-        };
+            ClusterId = proxy.Key,
+            Destinations = proxy.ToDictionary(pair => pair.Key, pair => new DestinationConfig
+            {
+                Address = pair.Value.OriginalString
+            })
+        });
     }
 }

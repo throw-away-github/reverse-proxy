@@ -4,5 +4,5 @@ namespace CF.AccessProxy.Proxy.Routes;
 
 public interface IRouteProvider
 {
-    public RouteConfig Route { get; }
+    public IEnumerable<RouteConfig> Routes { get; }
 }

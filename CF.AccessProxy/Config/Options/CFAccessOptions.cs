@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using CF.AccessProxy.Config.Validation;
-using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Config.Options;
 
@@ -15,7 +13,4 @@ internal class CFAccessOptions : IOptionsProvider
 
     [Required(ErrorMessage = "At least one CFAccess proxy needs to be provided.")]
     public required Dictionary<string, Uri> Proxies { get; init; }
-
-    internal Lazy<Dictionary<string, DestinationConfig>> DestinationConfig =>
-        new(() => DestinationHelper.ConvertToDestinations(Proxies));
 }

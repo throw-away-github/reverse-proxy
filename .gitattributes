@@ -1,0 +1,83 @@
+###############################################################################
+# Set default behavior to:
+#   automatically normalize line endings on check-in, and
+#   convert to Windows-style line endings on check-out
+###############################################################################
+* text=auto encoding=UTF-8
+*.sh text eol=lf
+
+###############################################################################
+# Set file behavior to:
+#   treat as text, and
+#   diff as C# source code
+###############################################################################
+*.cs        		text		diff=csharp
+
+###############################################################################
+# Set file behavior to:
+#   treat as text
+###############################################################################
+*.classpath         text
+*.cmd       		text
+*.config    		text
+*.groovy			text
+*.json      		text
+*.lss       		text
+*.md        		text
+*.nuspec			text
+*.pkgdef			text
+*.proj				text
+*.project           text
+*.projitems			text
+*.ps1       		text
+*.resx				text
+*.ruleset			text
+*.shproj			text
+*.targets   		text
+*.vb				text
+*.vsct				text
+*.vsixmanifest		text
+
+###############################################################################
+# Set file behavior to:
+#   treat as binary
+###############################################################################
+*.png				binary
+*.snk       		binary
+
+###############################################################################
+# Set file behavior to:
+#   treat as text, lf line endings
+###############################################################################
+changelog           text        eol=lf
+control             text        eol=lf
+copyright           text        eol=lf
+rules               text        eol=lf
+format              text        eol=lf
+compat              text        eol=lf
+*.bats              text        eol=lf
+*.1                 text        eol=lf
+*.plist             text        eol=lf
+
+
+###############################################################################
+# Set file behavior to:
+#   treat as text, crlf line endings
+###############################################################################
+*.csproj            text        eol=crlf
+*.dbproj            text        eol=crlf
+*.filters           text        eol=crlf
+*.fsproj            text        eol=crlf
+*.lsproj            text        eol=crlf
+*.modelproj         text        eol=crlf
+*.props             text        eol=crlf
+*.sln               text        eol=crlf
+*.sqlproj           text        eol=crlf
+*.vbproj            text        eol=crlf
+*.vcproj            text        eol=crlf
+*.vcxitems          text        eol=crlf
+*.vcxproj           text        eol=crlf
+*.vcxproj.filters   text        eol=crlf
+*.wixproj           text        eol=crlf
+*.wmaproj           text        eol=crlf
+*.xproj             text        eol=crlf

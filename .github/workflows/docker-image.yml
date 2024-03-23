@@ -42,7 +42,7 @@ jobs:
             # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
             # set branch tag for non-default branches
-            type=branch,enable=!{{is_default_branch}}
+            type=raw,value={{branch}},enable=!{{is_default_branch}}
       - name: Depot Build and Push
         uses: depot/build-push-action@v1
         with:

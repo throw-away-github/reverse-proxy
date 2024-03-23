@@ -1,8 +1,8 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["CF.AccessProxy/CF.AccessProxy.csproj", "CF.AccessProxy/"]
 RUN dotnet restore "CF.AccessProxy/CF.AccessProxy.csproj"
@@ -22,5 +22,8 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 ENV CFAccess__ClientId=""
 ENV CFAccess__ClientSecret=""
 ENV CFAccess__Proxies=""
+ENV CFAccess__BasePath=""
+ENV Github__Token=""
+ENV ConnectionStrings__Redis=""
 
 ENTRYPOINT ["dotnet", "CF.AccessProxy.dll"]

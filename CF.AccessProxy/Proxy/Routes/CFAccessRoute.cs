@@ -1,7 +1,6 @@
 using CF.AccessProxy.Config.Options;
 using CF.AccessProxy.Extensions;
 using CF.AccessProxy.Proxy.Transforms;
-using JetBrains.Annotations;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
@@ -32,23 +31,27 @@ internal class CFAccessRoute : IRouteProvider
     /// <returns>A list of <see cref="RouteConfig"/> to be used by the proxy.</returns>
     private IEnumerable<RouteConfig> BuildRoutes()
     {
-        // This was a foreach loop with a yield return, but Rider suggested converting it.
-        // Not sure which I like better, but leaving it as is for now.
-        return _options.Proxies.Keys
-            .Select(proxyKey => new RouteConfig
+        // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
+        foreach (var proxyKey in _options.Proxies.Keys)
+        {
+            var basePath = Path.IsPathRooted(_options.BasePath) ? _options.BasePath : $"/{_options.BasePath}";
+            var route = new RouteConfig
             {
                 RouteId = proxyKey,
                 ClusterId = proxyKey,
                 Match = new RouteMatch
                 {
-                    Path = $"/{_options.BasePath}/{proxyKey}/{{**catch-all}}"
+                    Path = Path.Join(_options.BasePath, proxyKey, "{**catch-all}")
                 }
-            })
-            .Select(route => route
-                .WithTransformPathRemovePrefix($"/{_options.BasePath}/{route.RouteId}")
-                .WithTransformRequestHeader("CF-Access-Client-Id", _options.ClientId)
-                .WithTransformRequestHeader("CF-Access-Client-Secret", _options.ClientSecret)
-                .WithTransformFactory<CFAccessTransform>()
-            );
+            };
+
+            route = route
+                .WithTransformPathRemovePrefix(Path.Join(basePath, route.RouteId))
+                // .WithTransformRequestHeader("CF-Access-Client-Id", _options.ClientId)
+                // .WithTransformRequestHeader("CF-Access-Client-Secret", _options.ClientSecret)
+                .WithTransformFactory<CFAccessTransform>();
+
+            yield return route;
+        }
     }
 }

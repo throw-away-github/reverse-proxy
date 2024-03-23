@@ -1,8 +1,31 @@
-﻿services:
+﻿networks:
+  default:
+    name: mynetwork
+    driver: bridge
+    
+services:
   cf.access-proxy:
     image: cf.access-proxy
+    ports:
+      - "15141:8080"
     environment:
       - ASPNETCORE_URLS=http://+:8080
     build:
       context: .
       dockerfile: CF.AccessProxy/Dockerfile
+    
+  redis:
+    container_name: redis
+    image: redis/redis-stack:latest
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    tmpfs:
+      - /var/lib/redis
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE

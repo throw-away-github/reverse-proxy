@@ -1,6 +1,6 @@
 using CF.AccessProxy.Config;
 using CF.AccessProxy.Proxy.Transforms;
-using Yarp.ReverseProxy.Transforms.Builder;
+using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Extensions;
 
@@ -12,12 +12,14 @@ public static class ReverseProxyExtensions
     /// <exception cref="System.InvalidOperationException">There is no IProxyConfigInfo service registered</exception>
     public static IReverseProxyBuilder LoadFromProviders(this IReverseProxyBuilder proxyBuilder)
     {
-        using var scope = proxyBuilder.Services.BuildServiceProvider().CreateScope();
-
-        var info = scope.ServiceProvider
-            .GetRequiredService<IProxyConfigInfo>();
-
-        proxyBuilder.LoadFromMemory(info.Routes, info.Clusters);
+        // proxyBuilder.LoadFromMemory(info.Routes, info.Clusters);
+        proxyBuilder.Services.AddSingleton<InMemoryConfigProvider>(provider =>
+        {
+            var info = provider.GetRequiredService<IProxyConfigInfo>();
+            return new InMemoryConfigProvider(info.Routes, info.Clusters);
+        });
+        proxyBuilder.Services.AddSingleton<IProxyConfigProvider>(s => 
+            s.GetRequiredService<InMemoryConfigProvider>());
 
         return proxyBuilder;
     }

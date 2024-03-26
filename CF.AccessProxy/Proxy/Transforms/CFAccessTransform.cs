@@ -5,7 +5,6 @@ using CF.AccessProxy.Config.Options;
 using CF.AccessProxy.Models;
 using CF.AccessProxy.Services;
 using Microsoft.Extensions.Options;
-using Yarp.ReverseProxy.Transforms;
 
 namespace CF.AccessProxy.Proxy.Transforms;
 

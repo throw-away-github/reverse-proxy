@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using CF.AccessProxy.Models;
+using Yarp.ReverseProxy.Transforms.Builder;
 
 namespace CF.AccessProxy.Proxy.Transforms;
 
@@ -15,9 +17,8 @@ internal class NugetIndexTransform : SimpleTransform
     protected override ValueTask ResponseTransform(SimpleResponseContext context)
     {
         // if filename is not index.json, return
-        
         var requestPath = context.Http.Request.Path;
-        if (!requestPath.HasValue || !requestPath.Value.EndsWith("index.json"))
+        if (!requestPath.HasValue || !requestPath.Value.Contains("v3", StringComparison.OrdinalIgnoreCase))
         {
             return default;
         }
@@ -34,60 +35,162 @@ internal class NugetIndexTransform : SimpleTransform
         {
             return default;
         }
-
-        var route = context.Transform.Route.RouteId;
-        var destination = context.Transform.Cluster?.Destinations?.Values.FirstOrDefault();
-        if (destination == null)
+        
+        if (!UrlReplacementRequest.TryCreate(context, out var urlReplacement))
         {
             return default;
         }
-        
-        var oldUrlPrefix = destination.Address;
-        var newUriBuilder = new UriBuilder
-        {
-            Scheme = context.Http.Request.Scheme,
-            Host = context.Http.Request.Host.Host,
-            Path = route
-        };
-        
-        var requestPort = context.Http.Request.Host.Port;
-        if (requestPort.HasValue)
-        {
-            newUriBuilder.Port = requestPort.Value;
-        }
-        
-        var newUrlPrefix = newUriBuilder.Uri.ToString();
-        
+
         context.SuppressResponseBody = true;
-        return AwaitResponseTransform(context.Proxy, context.Http.Response.Body, oldUrlPrefix, newUrlPrefix);
+        return ReplaceUrls(urlReplacement);
     }
     
-    private static async ValueTask AwaitResponseTransform(HttpResponseMessage response, Stream responseStream, string oldUrlPrefix, string newUrlPrefix)
+    private record UrlReplacementRequest
     {
-        var nugetIndex = await response.Content.ReadFromJsonAsync(JsonContext.Default.NugetIndex);
-        if (nugetIndex == null)
+        public required HttpResponseMessage Response { get; init; }
+        public required TransformBuilderContext Transform { get; init; }
+        public required string OldUrl { get; init; }
+        public required string NewUrl { get; init; }
+        public required Stream ResponseStream { get; init; }
+        
+        public static bool TryCreate(
+            SimpleResponseContext context, 
+            [NotNullWhen(true)] out UrlReplacementRequest? result)
         {
-            return;
+            var transform = context.Transform;
+            var proxy = context.Proxy;
+            
+            var route = transform.Route.RouteId;
+            var destination = transform.Cluster?.Destinations?.Values.FirstOrDefault();
+            if (destination == null || proxy == null)
+            {
+                result = null;
+                return false;
+            }
+        
+            var oldUrlPrefix = destination.Address;
+            var oldUrlScheme = oldUrlPrefix.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                ? "https"
+                : "http";
+            
+            var request = context.Http.Request;
+            var newUriBuilder = new UriBuilder
+            {
+                Scheme = oldUrlScheme,
+                Host = request.Host.Host,
+                Path = route
+            };
+        
+            var requestPort = request.Host.Port;
+            if (requestPort.HasValue)
+            {
+                newUriBuilder.Port = requestPort.Value;
+            }
+
+            result = new UrlReplacementRequest
+            {
+                Response = proxy,
+                Transform = transform,
+                OldUrl = oldUrlPrefix,
+                NewUrl = newUriBuilder.Uri.ToString(),
+                ResponseStream = context.Http.Response.Body
+            };
+            return true;
         }
-        ReplaceUrls(nugetIndex.Resources, oldUrlPrefix, newUrlPrefix);
-        await JsonSerializer.SerializeAsync(responseStream, nugetIndex, JsonContext.Default.NugetIndex);
     }
     
-    private static void ReplaceUrls(List<Resource> resources, ReadOnlySpan<char> oldUrl, ReadOnlySpan<char> newUrl)
+    private static async ValueTask ReplaceUrls(UrlReplacementRequest request)
     {
-        oldUrl = oldUrl.TrimEnd('/');
-        newUrl = newUrl.TrimEnd('/');
-        if (oldUrl.Equals(newUrl, StringComparison.OrdinalIgnoreCase))
+        // load the json into a utf8 json reader and modify any strings that match the old url
+        using var json = await JsonDocument.ParseAsync(await request.Response.Content.ReadAsStreamAsync());
+        await using var writer = new Utf8JsonWriter(request.ResponseStream);
+        
+        ReplaceUrls(json.RootElement, writer, request);
+    }
+    
+    private static void ReplaceUrls(JsonProperty property, Utf8JsonWriter writer, UrlReplacementRequest request)
+    {
+        switch (property.Value.ValueKind)
         {
-            return;
-        }
-        foreach (var resource in resources)
-        {
-            resource.Id = ReplaceStart(resource.Id, oldUrl, newUrl);
+            case JsonValueKind.String:
+                var value = property.Value.GetString();
+                if (value == null)
+                {
+                    writer.WriteNull(property.Name);
+                    break;
+                }
+                var newValue = ReplaceUrl(value, request.OldUrl, request.NewUrl);
+                writer.WriteString(property.Name, newValue);
+                break;
+            case JsonValueKind.Object:
+                writer.WriteStartObject(property.Name);
+                foreach (var childProperty in property.Value.EnumerateObject())
+                {
+                    ReplaceUrls(childProperty, writer, request);
+                }
+                writer.WriteEndObject();
+                break;
+            case JsonValueKind.Array:
+                writer.WriteStartArray(property.Name);
+                foreach (var element in property.Value.EnumerateArray())
+                {
+                    ReplaceUrls(element, writer, request);
+                }
+                writer.WriteEndArray();
+                break;
+            case JsonValueKind.Undefined:
+            case JsonValueKind.Number:
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+            case JsonValueKind.Null:
+            default:
+                property.WriteTo(writer);
+                break;
         }
     }
     
-    private static string ReplaceStart(string value, ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
+    private static void ReplaceUrls(JsonElement element, Utf8JsonWriter writer, UrlReplacementRequest request)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.String:
+                var value = element.GetString();
+                if (value == null)
+                {
+                    writer.WriteNullValue();
+                    break;
+                }
+                var newValue = ReplaceUrl(value, request.OldUrl, request.NewUrl);
+                writer.WriteStringValue(newValue);
+                break;
+            case JsonValueKind.Object:
+                writer.WriteStartObject();
+                foreach (var jsonProperty in element.EnumerateObject())
+                {
+                    ReplaceUrls(jsonProperty, writer, request);
+                }
+                writer.WriteEndObject();
+                break;
+            case JsonValueKind.Array:
+                writer.WriteStartArray();
+                foreach (var jsonElement in element.EnumerateArray())
+                {
+                    ReplaceUrls(jsonElement, writer, request);
+                }
+                writer.WriteEndArray();
+                break;
+            case JsonValueKind.Undefined:
+            case JsonValueKind.Number:
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+            case JsonValueKind.Null:
+            default:
+                element.WriteTo(writer);
+                break;
+        }
+    }
+    
+    private static string ReplaceUrl(string value, scoped ReadOnlySpan<char> oldValue, scoped ReadOnlySpan<char> newValue)
     {
         var valueSpan = value.AsSpan();
         return valueSpan.StartsWith(oldValue) 

@@ -5,6 +5,7 @@ using CF.AccessProxy.Config.Options;
 using CF.AccessProxy.Extensions;
 using CF.AccessProxy.Proxy.Clusters;
 using CF.AccessProxy.Proxy.Routes;
+using CF.AccessProxy.Proxy.Transforms;
 using CF.AccessProxy.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
@@ -57,10 +58,20 @@ builder.Services.AddHttpLogging(options =>
                             | HttpLoggingFields.Duration;
     options.CombineLogs = true;
 });
+
+builder.Services
+    .AddTransient<ITransform, NugetIndexTransform>()
+    .AddTransient<ITransform, CFAccessTransform>();
+
 // Add Reverse Proxy
 builder.Services.AddReverseProxy()
+    .ConfigureHttpClient((_, handler) =>
+    {
+        // this is required to decompress automatically
+        handler.AutomaticDecompression = System.Net.DecompressionMethods.All; 
+    })
     .LoadFromProviders()
-    .AddAllTransforms();
+    .AddTransformFactory<SimpleTransformFactory>();
 
 var app = builder.Build();
 

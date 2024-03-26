@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using CF.AccessProxy.Config.Options;
+using CF.AccessProxy.Models;
 using CF.AccessProxy.Services;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Transforms;
@@ -23,7 +24,7 @@ internal class CFAccessTransform: SimpleTransform
 
     protected override bool ValidateArgs(IReadOnlyDictionary<string, string> args) => true;
     
-    private static bool TryGetRequestIp(RequestTransformContext context, [NotNullWhen(true)] out IPAddress? ip)
+    private static bool TryGetRequestIp(SimpleRequestContext context, [NotNullWhen(true)] out IPAddress? ip)
     {
         var headers = context.HttpContext.Request.Headers;
 
@@ -65,7 +66,7 @@ internal class CFAccessTransform: SimpleTransform
         }
     }
 
-    protected override async ValueTask RequestTransform(RequestTransformContext context, IReadOnlyDictionary<string, string> args)
+    protected override async ValueTask RequestTransform(SimpleRequestContext context)
     {
         if (!TryGetRequestIp(context, out var remoteIp))
         {
@@ -94,12 +95,12 @@ internal class CFAccessTransform: SimpleTransform
         context.ProxyRequest.Headers.Add("CF-Access-Client-Secret", _options.ClientSecret);
     }
 
-    protected override ValueTask ResponseTransform(ResponseTransformContext context, IReadOnlyDictionary<string, string> args)
+    protected override ValueTask ResponseTransform(SimpleResponseContext context)
     {
         // for now, if two set-cookie headers are present, and one is the jwt cookie, we'll remove the other one
         // this is because Radarr has the weirdest cookie behavior I've ever seen and even I couldn't figure it out
 
-        if (!context.HttpContext.Response.Headers.TryGetValue("Set-Cookie", out var cookies))
+        if (!context.Http.Response.Headers.TryGetValue("Set-Cookie", out var cookies))
             return default;
             
         var cookieList = cookies.ToList();
@@ -110,7 +111,7 @@ internal class CFAccessTransform: SimpleTransform
         if (jwtCookie == null)
             return default;
             
-        context.HttpContext.Response.Headers.SetCookie = jwtCookie;
+        context.Http.Response.Headers.SetCookie = jwtCookie;
         return default;
     }
 }

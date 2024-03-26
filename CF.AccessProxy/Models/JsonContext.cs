@@ -14,4 +14,5 @@ namespace CF.AccessProxy.Models;
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(GithubMeta), TypeInfoPropertyName = "GithubMeta")]
 [JsonSerializable(typeof(IReadOnlyList<IpNetwork>), TypeInfoPropertyName = "IPNetworkSet")]
+[JsonSerializable(typeof(NugetIndex), TypeInfoPropertyName = "NugetIndex")]
 public partial class JsonContext : JsonSerializerContext;

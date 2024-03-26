@@ -49,7 +49,8 @@ internal class CFAccessRoute : IRouteProvider
                 .WithTransformPathRemovePrefix(Path.Join(basePath, route.RouteId))
                 // .WithTransformRequestHeader("CF-Access-Client-Id", _options.ClientId)
                 // .WithTransformRequestHeader("CF-Access-Client-Secret", _options.ClientSecret)
-                .WithTransformFactory<CFAccessTransform>();
+                .WithTransformFactory<CFAccessTransform>()
+                .WithTransformFactory<NugetIndexTransform>();
 
             yield return route;
         }

@@ -13,7 +13,4 @@ namespace CF.AccessProxy.Proxy.Transforms;
 /// <see cref="Extensions.ReverseProxyExtensions.AddAllTransforms"/>
 /// </note>
 [UsedImplicitly (ImplicitUseTargetFlags.WithInheritors)]
-public interface ITransform: ITransformFactory
-{
-    static abstract string Id { get; }
-}
+public interface ITransform: ITransformFactory;

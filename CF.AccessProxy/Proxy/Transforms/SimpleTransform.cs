@@ -1,3 +1,4 @@
+using CF.AccessProxy.Models;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Transforms.Builder;
 
@@ -6,20 +7,35 @@ namespace CF.AccessProxy.Proxy.Transforms;
 internal abstract class SimpleTransform: ITransform
 {
     /// <inheritdoc />
-    public static string Id { get; } = Guid.NewGuid().ToString();
-
-    /// <inheritdoc />
     public bool Validate(TransformRouteValidationContext context, IReadOnlyDictionary<string, string> transformValues)
     {
-        return transformValues.ContainsKey(Id) && ValidateArgs(transformValues);
+        return Validate(transformValues);
     }
 
+    private bool Validate(IReadOnlyDictionary<string, string> transformValues)
+    {
+        return transformValues.ContainsKey(GetType().GUID.ToString()) && ValidateArgs(transformValues);
+    }
 
     /// <inheritdoc />
     public bool Build(TransformBuilderContext context, IReadOnlyDictionary<string, string> transformValues)
     {
-        context.AddRequestTransform(ctx => RequestTransform(ctx, transformValues));
-        context.AddResponseTransform(ctx => ResponseTransform(ctx, transformValues));
+        if (!Validate(transformValues))
+        {
+            return false;
+        }
+        context.AddRequestTransform(ctx => RequestTransform(new SimpleRequestContext
+        {
+            Context = ctx,
+            Args = transformValues,
+            Transform = context
+        }));
+        context.AddResponseTransform(ctx => ResponseTransform(new SimpleResponseContext
+        {
+            Context = ctx,
+            Args = transformValues,
+            Transform = context
+        }));
         return true;
     }
     
@@ -33,10 +49,10 @@ internal abstract class SimpleTransform: ITransform
     /// <summary>
     /// Transform the request
     /// </summary>
-    protected abstract ValueTask RequestTransform(RequestTransformContext context, IReadOnlyDictionary<string, string> args);
+    protected abstract ValueTask RequestTransform(SimpleRequestContext context);
     
     /// <summary>
     /// Transform the response
     /// </summary>
-    protected abstract ValueTask ResponseTransform(ResponseTransformContext context, IReadOnlyDictionary<string, string> args);
+    protected abstract ValueTask ResponseTransform(SimpleResponseContext context);
 }

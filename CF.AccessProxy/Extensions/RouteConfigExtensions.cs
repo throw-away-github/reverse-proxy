@@ -12,7 +12,7 @@ public static class RouteConfigExtensions
     {
         return route.WithTransform(transform =>
         {
-            transform.Add(TTransform.Id, string.Empty);
+            transform.Add(typeof(TTransform).GUID.ToString(), string.Empty);
             if (args == null) 
                 return;
             foreach (var arg in args)

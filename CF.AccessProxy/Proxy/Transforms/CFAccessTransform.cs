@@ -81,6 +81,7 @@ internal class CFAccessTransform: SimpleTransform
             if (!isGithubIp)
             {
                 _logger.LogWarning("Request from {Ip} is not a valid Github IP", remoteIp);
+                context.HttpContext.Response.StatusCode = (int) HttpStatusCode.Forbidden;
                 return;
             }
         }

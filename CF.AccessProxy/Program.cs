@@ -1,14 +1,10 @@
-using System.Net.Http.Headers;
 using System.Text;
 using CF.AccessProxy.Config;
-using CF.AccessProxy.Config.Options;
 using CF.AccessProxy.Extensions;
 using CF.AccessProxy.Proxy.Clusters;
 using CF.AccessProxy.Proxy.Routes;
-using CF.AccessProxy.Proxy.Transforms;
 using CF.AccessProxy.Services;
 using Microsoft.AspNetCore.HttpLogging;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,13 +13,8 @@ builder.Services.AddControllers();
 
 // Load options, providers, and config
 builder.Services
-    .AddOptions<CFAccessOptions, CFAccessValidator>()
-    .BindConfiguration(CFAccessOptions.Prefix)
-    .ValidateOnStart();
-
-builder.Services
-    .AddOptions<GithubMetaOptions, GithubMetaValidator>()
-    .BindConfiguration(GithubMetaOptions.Prefix)
+    .AddOptions<CacheRouteOptions, RouteOptionsValidator>()
+    .BindConfiguration(CacheRouteOptions.Prefix)
     .ValidateOnStart();
 
 builder.Services
@@ -31,24 +22,8 @@ builder.Services
     .RegisterAllTypes<IRouteProvider>()
     .AddSingleton<IProxyConfigInfo, InMemoryConfig>();
 
-// Add Redis Cache
-builder.Services
-    .AddStackExchangeRedisCache(_ => { })
-    .AddSingleton<IValidateOptions<RedisCacheOptions>, RedisCacheOptionsValidator>()
-    .ConfigureOptions<RedisCacheOptionsConfigurator>()
-    .AddOptions<RedisOptions>()
-    .BindConfiguration(RedisOptions.Prefix);
 
-
-builder.Services.AddHttpClient<GithubMetaService>()
-    .ConfigureHttpClientUsing<IOptions<GithubMetaOptions>>((options, client) =>
-    {
-        client.BaseAddress = options.Value.GithubMetaApi;
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Value.Token);
-        client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
-        client.DefaultRequestHeaders.Add("User-Agent", "CF.AccessProxy");
-        client.DefaultRequestHeaders.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/vnd.github+json"));
-    });
+builder.Services.AddHttpClient<StaleWhileRevalidateCachePolicy>();
 
 builder.Services.AddHttpLogging(options =>
 {
@@ -59,9 +34,17 @@ builder.Services.AddHttpLogging(options =>
     options.CombineLogs = true;
 });
 
-builder.Services
-    .AddTransient<ITransform, NugetIndexTransform>()
-    .AddTransient<ITransform, CFAccessTransform>();
+builder.Services.AddSingleton<WorkerProcessor<string>>();
+
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(policy =>
+    {
+        policy.SetVaryByHost(true);
+        policy.AddPolicy<StaleWhileRevalidateCachePolicy>();
+    });
+    options.DefaultExpirationTimeSpan = TimeSpan.FromMinutes(5);
+});
 
 // Add Reverse Proxy
 builder.Services.AddReverseProxy()
@@ -70,8 +53,7 @@ builder.Services.AddReverseProxy()
         // this is required to decompress automatically
         handler.AutomaticDecompression = System.Net.DecompressionMethods.All; 
     })
-    .LoadFromProviders()
-    .AddTransformFactory<SimpleTransformFactory>();
+    .LoadFromProviders();
 
 var app = builder.Build();
 
@@ -81,7 +63,10 @@ app.UseRouting();
 
 try
 {
-    app.MapReverseProxy();
+    app.MapReverseProxy(configureApp =>
+    {
+        configureApp.UseOutputCache();
+    });
     await app.RunAsync();
 }
 catch (OptionsValidationException ex)

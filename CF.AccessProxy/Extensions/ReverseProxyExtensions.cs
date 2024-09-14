@@ -1,5 +1,4 @@
 using CF.AccessProxy.Config;
-using CF.AccessProxy.Proxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Extensions;
@@ -20,17 +19,6 @@ public static class ReverseProxyExtensions
         });
         proxyBuilder.Services.AddSingleton<IProxyConfigProvider>(s => 
             s.GetRequiredService<InMemoryConfigProvider>());
-
-        return proxyBuilder;
-    }
-    
-    public static IReverseProxyBuilder AddAllTransforms(this IReverseProxyBuilder proxyBuilder)
-    {
-        using var scope = proxyBuilder.Services.BuildServiceProvider().CreateScope();
-
-        var method = typeof(ReverseProxyServiceCollectionExtensions)
-            .GetMethod(nameof(ReverseProxyServiceCollectionExtensions.AddTransformFactory));
-        ServiceCollectionExtensions.InvokeWithImplementations(method, typeof(ITransform), proxyBuilder);
 
         return proxyBuilder;
     }

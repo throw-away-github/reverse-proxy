@@ -1,15 +1,15 @@
-using CF.AccessProxy.Config.Options;
+using CF.AccessProxy.Config;
 using CF.AccessProxy.Extensions;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
 
 namespace CF.AccessProxy.Proxy.Clusters;
 
-internal class CFAccessCluster: IClusterProvider
+internal class CacheProxyCluster: IClusterProvider
 {
-    private readonly CFAccessOptions _options;
+    private readonly CacheRouteOptions _options;
     
-    public CFAccessCluster(IOptions<CFAccessOptions> options)
+    public CacheProxyCluster(IOptions<CacheRouteOptions> options)
     {
         _options = options.Value;
     }

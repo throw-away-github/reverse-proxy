@@ -1,21 +1,19 @@
-using CF.AccessProxy.Config.Options;
-using CF.AccessProxy.Extensions;
-using CF.AccessProxy.Proxy.Transforms;
+using CF.AccessProxy.Config;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
 namespace CF.AccessProxy.Proxy.Routes;
 
-internal class CFAccessRoute : IRouteProvider
+internal class CacheProxyRoute : IRouteProvider
 {
-    private readonly CFAccessOptions _options;
+    private readonly CacheRouteOptions _options;
 
     /// <summary>
     /// Adds the CF-Access-Client-Id and CF-Access-Client-Secret headers to the request.
     /// Forwards the same path, headers, and query parameters to the upstream server. (excluding the base cf-access path)
     /// </summary>
-    public CFAccessRoute(IOptions<CFAccessOptions> options)
+    public CacheProxyRoute(IOptions<CacheRouteOptions> options)
     {
         _options = options.Value;
     }
@@ -45,12 +43,7 @@ internal class CFAccessRoute : IRouteProvider
                 }
             };
 
-            route = route
-                .WithTransformPathRemovePrefix(Path.Join(basePath, route.RouteId))
-                // .WithTransformRequestHeader("CF-Access-Client-Id", _options.ClientId)
-                // .WithTransformRequestHeader("CF-Access-Client-Secret", _options.ClientSecret)
-                .WithTransformFactory<CFAccessTransform>()
-                .WithTransformFactory<NugetIndexTransform>();
+            route = route.WithTransformPathRemovePrefix(Path.Join(basePath, route.RouteId));
 
             yield return route;
         }

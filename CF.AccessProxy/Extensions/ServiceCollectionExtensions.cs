@@ -1,5 +1,4 @@
 using System.Reflection;
-using CF.AccessProxy.Config.Options;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using DynAccess = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
@@ -9,21 +8,6 @@ namespace CF.AccessProxy.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Loads a single implementation of IOptionsProvider, and binds it to the IConfiguration
-    /// </summary>
-    public static IServiceCollection LoadOptions<TOptions>(this IServiceCollection services)
-        where TOptions : class, IOptionsProvider
-    {
-        services.AddOptions<TOptions>()
-            .Bind(services
-                .BuildServiceProvider()
-                .GetRequiredService<IConfiguration>()
-                .GetSection(TOptions.Prefix))
-            .ValidateDataAnnotations();
-        return services;
-    }
-    
     public static OptionsBuilder<TOptions> AddOptions<
         TOptions,
         [DynAccess(PublicConstructors)] TValidator>(this IServiceCollection services, string? name = null)
@@ -87,15 +71,6 @@ internal static class ServiceCollectionExtensions
             services.Add(new ServiceDescriptor(typeof(T), type, lifetime));
 
         return services;
-    }
-    
-    public static void InvokeWithImplementations(MethodInfo? method, Type type, params object[] args)
-    {
-        foreach (var impl in GetInterfaceImplementations(type))
-        {
-            var generic = method?.MakeGenericMethod(impl);
-            generic?.Invoke(null, args);
-        }
     }
 
     /// <summary>

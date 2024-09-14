@@ -17,9 +17,10 @@
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
         <PackageReference Include="Riok.Mapperly" Version="3.5.0-next.3" />
         <PackageReference Include="System.Reflection.Extensions" Version="4.3.0" />
-        <PackageReference Include="Yarp.ReverseProxy" Version="2.1.0" />
+        <PackageReference Include="Yarp.ReverseProxy" Version="2.2.0" />
     </ItemGroup>
 
     <ItemGroup>

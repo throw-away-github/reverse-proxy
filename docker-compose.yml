@@ -13,19 +13,3 @@ services:
     build:
       context: .
       dockerfile: CF.AccessProxy/Dockerfile
-    
-  redis:
-    container_name: redis
-    image: redis/redis-stack:latest
-    hostname: redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    tmpfs:
-      - /var/lib/redis
-    cap_drop:
-      - ALL
-    cap_add:
-      - SETGID
-      - SETUID
-      - DAC_OVERRIDE

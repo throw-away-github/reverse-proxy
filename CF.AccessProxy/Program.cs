@@ -5,6 +5,7 @@ using CF.AccessProxy.Proxy.Clusters;
 using CF.AccessProxy.Proxy.Routes;
 using CF.AccessProxy.Services;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +46,8 @@ builder.Services.AddOutputCache(options =>
     });
     options.DefaultExpirationTimeSpan = TimeSpan.FromMinutes(5);
 });
+
+builder.Services.Configure<OutputCacheOptions>(null, builder.Configuration.GetSection(CacheRouteOptions.Prefix));
 
 // Add Reverse Proxy
 builder.Services.AddReverseProxy()

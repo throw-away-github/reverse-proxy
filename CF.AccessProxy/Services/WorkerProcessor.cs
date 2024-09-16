@@ -53,20 +53,43 @@ public class WorkerProcessor<TKey> where TKey : notnull
         return _workDispatcher.ContainsKey(key);
     }
 
-    public void Enqueue<T>(TKey key, T state, Func<TKey, T, Task> taskFunc)
+    public void Enqueue<T>(TKey key, T state, Func<TKey, T, Task> taskFunc, Action<T> cleanupAction)
     {
-        var stateTuple = (State: state, TaskFunc: taskFunc, Logger: _logger);
-        var task = _workDispatcher.ScheduleAsync(key, stateTuple, async static (key, st) =>
+        var item = new WorkItem<T>(key, state, taskFunc, _logger, cleanupAction);
+        var result = _workDispatcher.ScheduleAsync(key, item, async static (_, item) => 
         {
             try
             {
-                await st.TaskFunc(key, st.State);
+                await item.TaskFunc(item.Key, item.Arg);
             }
             catch (Exception e)
             {
-                st.Logger.LogError(e, "Error processing task for key {Key}", key);
+                item.Logger.LogError(e, "Error processing task for key {Key}", item.Key);
             }
+
+            Cleanup(item);
         });
-        _taskChannel.Writer.TryWrite(task);
+
+        if (!result.IsNewTask)
+        {
+            Cleanup(item);
+        }
+
+        _taskChannel.Writer.TryWrite(result.Task);
+        return;
+
+        static void Cleanup(WorkItem<T> item)
+        {
+            try
+            {
+                item.CleanupAction(item.Arg);
+            }
+            catch (Exception e)
+            {
+                item.Logger.LogError(e, "Error cleaning up state for key {Key}", item.Key);
+            }
+        }
     }
+
+    private record WorkItem<T>(TKey Key, T Arg, Func<TKey, T, Task> TaskFunc, ILogger Logger, Action<T> CleanupAction);
 }

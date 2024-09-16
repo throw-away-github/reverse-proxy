@@ -32,6 +32,7 @@ internal class CacheProxyRoute : IRouteProvider
         // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
         foreach (var proxyKey in _options.Proxies.Keys)
         {
+            const string catchAll = "{**catch-all}";
             var basePath = Path.IsPathRooted(_options.BasePath) ? _options.BasePath : $"/{_options.BasePath}";
             var route = new RouteConfig
             {
@@ -39,7 +40,9 @@ internal class CacheProxyRoute : IRouteProvider
                 ClusterId = proxyKey,
                 Match = new RouteMatch
                 {
-                    Path = Path.Join(_options.BasePath, proxyKey, "{**catch-all}")
+                    Path = "root".Equals(proxyKey, StringComparison.OrdinalIgnoreCase)
+                        ? Path.Join(_options.BasePath, catchAll)
+                        : Path.Join(_options.BasePath, proxyKey, catchAll)
                 }
             };
 

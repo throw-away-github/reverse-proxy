@@ -19,11 +19,7 @@ COPY --from=publish /app/publish .
 
 ENV ASPNETCORE_URLS=http://+:80
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV CFAccess__ClientId=""
-ENV CFAccess__ClientSecret=""
-ENV CFAccess__Proxies=""
-ENV CFAccess__BasePath=""
-ENV Github__Token=""
-ENV ConnectionStrings__Redis=""
+ENV Cache__BasePath=""
+ENV Cache__DefaultExpirationTimeSpan="00:10:00"
 
 ENTRYPOINT ["dotnet", "CF.AccessProxy.dll"]

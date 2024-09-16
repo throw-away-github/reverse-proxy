@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using CF.AccessProxy.Extensions;
 
 namespace CF.AccessProxy.Services;
 
@@ -43,7 +44,7 @@ public class WorkerProcessor<TKey> where TKey : notnull
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Uncaught exception while processing task");
+                _logger.UncaughtExceptionWhileProcessingTask(ex);
             }
         }
     }
@@ -64,7 +65,7 @@ public class WorkerProcessor<TKey> where TKey : notnull
             }
             catch (Exception e)
             {
-                item.Logger.LogError(e, "Error processing task for key {Key}", item.Key);
+                item.Logger.ErrorProcessingTask(e, item.Key.ToString());
             }
 
             Cleanup(item);
@@ -86,7 +87,7 @@ public class WorkerProcessor<TKey> where TKey : notnull
             }
             catch (Exception e)
             {
-                item.Logger.LogError(e, "Error cleaning up state for key {Key}", item.Key);
+                item.Logger.CouldNotCleanupState(e, item.Key.ToString());
             }
         }
     }

@@ -98,7 +98,7 @@ public sealed class StaleWhileRevalidateCachePolicy : IOutputCachePolicy
         var response = await _httpClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogWarning("Failed to revalidate cache entry for key {CacheKey}: {Reason}", cacheKey, response.ReasonPhrase);
+            _logger.FailedToRevalidateCacheEntry(cacheKey, response.ReasonPhrase);
         }
     }
 }

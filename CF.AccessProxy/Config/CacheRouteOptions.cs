@@ -11,7 +11,7 @@ internal sealed class CacheRouteOptions
 {
     public static string Prefix => "Cache";
 
-    [Required (AllowEmptyStrings = true)] 
+    [Required(AllowEmptyStrings = true)] 
     public string BasePath { get; init; } = "";
 
     [Required(ErrorMessage = "At least one CFAccess proxy needs to be provided.")]

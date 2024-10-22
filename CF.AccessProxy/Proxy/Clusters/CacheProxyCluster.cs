@@ -8,19 +8,17 @@ namespace CF.AccessProxy.Proxy.Clusters;
 internal class CacheProxyCluster: IClusterProvider
 {
     private readonly CacheRouteOptions _options;
-    
+
     public CacheProxyCluster(IOptions<CacheRouteOptions> options)
     {
         _options = options.Value;
     }
-    
-    public IEnumerable<ClusterConfig> Clusters => BuildClusters();
-    
+
     /// <summary>
     /// Takes the list of proxies from the config and builds a cluster for each one.
     /// </summary>
     /// <returns>A list of <see cref="ClusterConfig"/> to be used by the proxy.</returns>
-    private IEnumerable<ClusterConfig> BuildClusters()
+    public IEnumerable<ClusterConfig> BuildClusters()
     {
         return _options.Proxies.Select(proxy => new ClusterConfig
         {

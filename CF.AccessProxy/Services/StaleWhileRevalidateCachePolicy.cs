@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using CF.AccessProxy.Extensions;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.OutputCaching;
@@ -17,11 +16,11 @@ public sealed class StaleWhileRevalidateCachePolicy : IOutputCachePolicy
     private readonly WorkerProcessor<string> _workerProcessor;
 
     public StaleWhileRevalidateCachePolicy(
-        HttpClient httpClient,
+        IHttpClientFactory httpClientFactory,
         ILogger<StaleWhileRevalidateCachePolicy> logger,
         WorkerProcessor<string> workerProcessor)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
         _workerProcessor = workerProcessor;
     }
@@ -36,8 +35,8 @@ public sealed class StaleWhileRevalidateCachePolicy : IOutputCachePolicy
         if (context.HttpContext.Request.Headers.ContainsKey(REVALIDATE_CACHE_HEADER))
         {
             context.AllowCacheLookup = false;
-            return ValueTask.CompletedTask;
         }
+
         return ValueTask.CompletedTask;
     }
 
@@ -54,12 +53,18 @@ public sealed class StaleWhileRevalidateCachePolicy : IOutputCachePolicy
             return;
         }
 
-        var request = await CopyRequest(context.HttpContext.Request);
-        _workerProcessor.Enqueue(cacheKey, (this, request), static (key, state) =>
-        {
-            var (policy, request) = state;
-            return policy.Revalidate(key, request);
-        }, static state => state.request.Dispose());
+        var requestCopy = await CopyRequest(context.HttpContext.Request);
+        EnqueueWorkItem(cacheKey, requestCopy);
+    }
+
+    private void EnqueueWorkItem(string cacheKey, HttpRequestMessage requestCopy)
+    {
+        var item = (Self: this, Request: requestCopy);
+        _workerProcessor.Enqueue(
+            cacheKey, 
+            item, 
+            static (cacheKey, item) => item.Self.Revalidate(cacheKey, item.Request), 
+            static item => item.Request.Dispose());
     }
 
     private static async ValueTask<HttpRequestMessage> CopyRequest(HttpRequest request)

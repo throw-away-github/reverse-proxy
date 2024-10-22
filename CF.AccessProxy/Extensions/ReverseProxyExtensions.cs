@@ -9,18 +9,15 @@ public static class ReverseProxyExtensions
     /// Loads the routes and clusters from the IProxyConfigInfo service into memory
     /// </summary>
     /// <exception cref="System.InvalidOperationException">There is no IProxyConfigInfo service registered</exception>
-    public static IReverseProxyBuilder LoadFromProviders(this IReverseProxyBuilder proxyBuilder)
+    public static IServiceCollection LoadProxyFromProviders(this IServiceCollection services)
     {
-        // proxyBuilder.LoadFromMemory(info.Routes, info.Clusters);
-        proxyBuilder.Services.AddSingleton<InMemoryConfigProvider>(provider =>
+        services.AddSingleton<InMemoryConfigProvider>(provider =>
         {
             var info = provider.GetRequiredService<IProxyConfigInfo>();
             return new InMemoryConfigProvider(info.Routes, info.Clusters);
         });
-        proxyBuilder.Services.AddSingleton<IProxyConfigProvider>(s => 
-            s.GetRequiredService<InMemoryConfigProvider>());
-
-        return proxyBuilder;
+        services.AddSingleton<IProxyConfigProvider>(provider => provider.GetRequiredService<InMemoryConfigProvider>());
+        return services;
     }
 }
 

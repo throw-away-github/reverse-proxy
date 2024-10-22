@@ -14,11 +14,9 @@ internal class InMemoryConfig : IProxyConfigInfo
     /// A simple config which creates a list of <see cref="RouteConfig"/> and <see cref="ClusterConfig"/>
     /// from the available <see cref="IRouteProvider"/> and <see cref="IClusterProvider"/> implementations.
     /// </summary>
-    public InMemoryConfig(
-        IEnumerable<IRouteProvider> routeProviders,
-        IEnumerable<IClusterProvider> clusterProviders)
+    public InMemoryConfig(IEnumerable<IRouteProvider> routeProviders, IEnumerable<IClusterProvider> clusterProviders)
     {
-        Routes = routeProviders.SelectMany(provider => provider.Routes).AsList().AsReadOnly();
-        Clusters = clusterProviders.SelectMany(provider => provider.Clusters).AsList().AsReadOnly();
+        Routes = routeProviders.SelectMany(provider => provider.BuildRoutes()).AsList().AsReadOnly();
+        Clusters = clusterProviders.SelectMany(provider => provider.BuildClusters()).AsList().AsReadOnly();
     }
 }

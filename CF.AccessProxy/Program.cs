@@ -1,4 +1,3 @@
-using System.Text;
 using CF.AccessProxy.Config;
 using CF.AccessProxy.Extensions;
 using CF.AccessProxy.Proxy.Clusters;
@@ -21,23 +20,13 @@ builder.Services
 builder.Services
     .RegisterAllTypes<IClusterProvider>()
     .RegisterAllTypes<IRouteProvider>()
-    .AddSingleton<IProxyConfigInfo, InMemoryConfig>();
+    .AddSingleton<IProxyConfigInfo, InMemoryConfig>()
+    .LoadProxyFromProviders();
 
-
-builder.Services.AddHttpClient<StaleWhileRevalidateCachePolicy>();
-
-builder.Services.AddHttpLogging(options =>
-{
-    options.LoggingFields = HttpLoggingFields.RequestPath
-                            | HttpLoggingFields.ResponseStatusCode
-                            | HttpLoggingFields.RequestMethod
-                            | HttpLoggingFields.Duration;
-    options.CombineLogs = true;
-});
-
+// Add Output Cache
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<WorkerProcessor<string>>();
-
-builder.Services.AddOutputCache(options =>
+builder.Services.AddOutputCache(static options =>
 {
     options.AddBasePolicy(policy =>
     {
@@ -49,38 +38,41 @@ builder.Services.AddOutputCache(options =>
 
 builder.Services.Configure<OutputCacheOptions>(null, builder.Configuration.GetSection(CacheRouteOptions.Prefix));
 
+// Add Http Logging
+builder.Services.AddHttpLogging(options =>
+{
+    options.LoggingFields = HttpLoggingFields.RequestPath
+                            | HttpLoggingFields.ResponseStatusCode
+                            | HttpLoggingFields.RequestMethod
+                            | HttpLoggingFields.RequestQuery
+                            | HttpLoggingFields.Duration;
+});
+
 // Add Reverse Proxy
-builder.Services.AddReverseProxy()
-    .ConfigureHttpClient((_, handler) =>
-    {
-        // this is required to decompress automatically
-        handler.AutomaticDecompression = System.Net.DecompressionMethods.All; 
-    })
-    .LoadFromProviders();
+var proxyBuilder = builder.Services.AddReverseProxy();
+proxyBuilder.ConfigureHttpClient(static (_, handler) =>
+{
+    // this is required to decompress automatically
+    handler.AutomaticDecompression = System.Net.DecompressionMethods.All; 
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// app.UseHttpLogging();
 app.UseRouting();
 
 try
 {
-    app.MapReverseProxy(configureApp =>
+    app.MapReverseProxy(static proxyBuilder =>
     {
-        configureApp.UseOutputCache();
+        proxyBuilder.UseOutputCache();
+        proxyBuilder.UseHttpLogging();
     });
     await app.RunAsync();
 }
 catch (OptionsValidationException ex)
 {
-    var sb = new StringBuilder();
-    sb.AppendLine($"Failed to validate options {ex.OptionsName}:");
-    foreach (var failure in ex.Failures)
-    {
-        sb.AppendLine(failure);
-    }
-    app.Logger.LogError("Options Validation Error: {ValidationErrors}", sb.ToString());
+    app.Logger.LogError("Options Validation Error: {OptionsName}: {Failures}", ex.OptionsName, ex.Failures);
     app.Logger.LogError("Exiting due to invalid options");
 }
 catch (Exception ex)

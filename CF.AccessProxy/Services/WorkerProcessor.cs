@@ -3,10 +3,9 @@ using CF.AccessProxy.Extensions;
 
 namespace CF.AccessProxy.Services;
 
-public class WorkerProcessor<TKey> where TKey : notnull
+public sealed class WorkerProcessor<TKey> : IAsyncDisposable where TKey : notnull
 {
     private readonly WorkDispatcher<TKey> _workDispatcher = new();
-
     private readonly Channel<Task> _taskChannel = Channel.CreateUnbounded<Task>(new UnboundedChannelOptions
     {
         SingleReader = true,
@@ -28,10 +27,10 @@ public class WorkerProcessor<TKey> where TKey : notnull
             .Unwrap();
     }
 
-    public Task StopAsync()
+    public Task StopAsync(CancellationToken cancellationToken)
     {
         _taskChannel.Writer.TryComplete();
-        return _worker.WaitAsync(CancellationToken.None);
+        return _worker.WaitAsync(cancellationToken);
     }
 
     private async Task ProcessAsync()
@@ -93,4 +92,10 @@ public class WorkerProcessor<TKey> where TKey : notnull
     }
 
     private record WorkItem<T>(TKey Key, T Arg, Func<TKey, T, Task> TaskFunc, ILogger Logger, Action<T> CleanupAction);
+
+    public async ValueTask DisposeAsync()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        await StopAsync(cts.Token);
+    }
 }

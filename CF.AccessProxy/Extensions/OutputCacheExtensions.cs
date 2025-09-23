@@ -15,4 +15,12 @@ public static class OutputCacheExtensions
 
     [UnsafeAccessor(UnsafeAccessorKind.Method, Name = GET_CACHE_KEY)]
     private static extern string? GetPrivateCacheKeyProperty(OutputCacheContext c);
+
+    public static TimeSpan CachedEntryAge(this OutputCacheContext context)
+    {
+        return GetCachedEntryAge(context);
+
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = $"get_{nameof(CachedEntryAge)}")]
+        static extern TimeSpan GetCachedEntryAge(OutputCacheContext c);
+    }
 }

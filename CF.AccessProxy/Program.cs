@@ -36,6 +36,7 @@ builder.Services.AddOutputCache(static options =>
     options.DefaultExpirationTimeSpan = TimeSpan.FromMinutes(5);
 });
 
+builder.Services.Configure<CacheOptions>(null, builder.Configuration.GetSection(CacheRouteOptions.Prefix));
 builder.Services.Configure<OutputCacheOptions>(null, builder.Configuration.GetSection(CacheRouteOptions.Prefix));
 
 // Add Http Logging

@@ -1,6 +1,8 @@
+using CF.AccessProxy.Config;
 using CF.AccessProxy.Extensions;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IO;
 
@@ -13,15 +15,18 @@ public sealed class StaleWhileRevalidateCachePolicy : IOutputCachePolicy
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<StaleWhileRevalidateCachePolicy> _logger;
+    private readonly CacheOptions _options;
     private readonly WorkerProcessor<string> _workerProcessor;
 
     public StaleWhileRevalidateCachePolicy(
         IHttpClientFactory httpClientFactory,
         ILogger<StaleWhileRevalidateCachePolicy> logger,
+        IOptions<CacheOptions> options,
         WorkerProcessor<string> workerProcessor)
     {
         _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
+        _options = options.Value;
         _workerProcessor = workerProcessor;
     }
 
@@ -43,6 +48,12 @@ public sealed class StaleWhileRevalidateCachePolicy : IOutputCachePolicy
     async ValueTask IOutputCachePolicy.ServeFromCacheAsync(OutputCacheContext context, CancellationToken cancellationToken)
     {
         if (!context.EnableOutputCaching || !context.AllowCacheLookup)
+        {
+            return;
+        }
+
+        var cachedEntryAge = context.CachedEntryAge();
+        if (cachedEntryAge < _options.StaleExpirationTimeSpan)
         {
             return;
         }
